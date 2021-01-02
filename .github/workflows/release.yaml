@@ -1,0 +1,120 @@
+name: release
+on:
+  schedule:
+  - cron: '0 0,8,16 * * *' # Thrice a day
+
+  push:
+    branches:
+    - trigger
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUSTFLAGS: "-D warnings -W unreachable-pub"
+  RUSTUP_MAX_RETRIES: 10
+  RA_REPO: "cynecx/rust-analyzer"
+  RA_REF: "nightly-builds"
+
+jobs:
+  dist-ubuntu:
+    name: dist (Ubuntu 18.04)
+    runs-on: ubuntu-18.04
+    env:
+      RA_TARGET: x86_64-unknown-linux-gnu
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        repository: ${{ env.RA_REPO }}
+        ref: ${{ env.RA_REF }}
+
+    - name: Install Rust nightly toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        profile: minimal
+        override: true
+
+    - name: Install Nodejs
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
+    - name: Dist
+      run: cargo xtask dist --nightly --client 0.3.$GITHUB_RUN_NUMBER-nightly
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: dist-ubuntu-18.04
+        path: ./dist
+
+  dist-macos-11:
+    name: dist (MacOS 11.0)
+    runs-on: macos-11.0
+    env:
+      RA_TARGET: aarch64-apple-darwin
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        repository: ${{ env.RA_REPO }}
+        ref: ${{ env.RA_REF }}
+
+    - name: Install Rust nightly toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        target: aarch64-apple-darwin
+        profile: minimal
+        override: true
+
+    - name: Dist
+      run: cargo xtask dist --nightly --client 0.3.$GITHUB_RUN_NUMBER-nightly
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: dist-macos-11.0
+        path: ./dist
+
+  publish:
+    name: publish
+    runs-on: ubuntu-16.04
+    needs: ['dist-ubuntu', 'dist-macos-11']
+    steps:
+    - name: Install Nodejs
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
+    - run: echo "TAG=nightly-$(date --utc --iso)-$GITHUB_RUN_ID" >> $GITHUB_ENV
+    - run: 'echo "TAG: $TAG"'
+
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        repository: ${{ env.RA_REPO }}
+        ref: ${{ env.RA_REF }}
+
+    - run: echo "HEAD_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+    - run: 'echo "HEAD_SHA: $HEAD_SHA"'
+
+    - uses: actions/download-artifact@v1
+      with:
+        name: dist-macos-11.0
+        path: dist
+    - uses: actions/download-artifact@v1
+      with:
+        name: dist-ubuntu-18.04
+        path: dist
+    - run: ls -al ./dist
+
+    - name: Publish Release
+      uses: ./.github/actions/github-release
+      with:
+        files: "dist/*"
+        name: ${{ env.TAG }}
+        token: ${{ secrets.GITHUB_TOKEN }}
