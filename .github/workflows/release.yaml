@@ -1,7 +1,7 @@
 name: release
 on:
   schedule:
-  - cron: '0 0,8,16 * * *' # Thrice a day
+  - cron: '0 */8 * * *' # Thrice a day
 
   push:
     branches:
@@ -29,6 +29,9 @@ jobs:
         repository: ${{ env.RA_REPO }}
         ref: ${{ env.RA_REF }}
 
+    - run: HEAD_SHA="$(git rev-parse HEAD)"; HEAD_SHA="${HEAD_SHA:0:7}"; echo "$HEAD_SHA" >> $GITHUB_ENV
+    - run: 'echo "HEAD_SHA: $HEAD_SHA"'
+
     - name: Install Rust nightly toolchain
       uses: actions-rs/toolchain@v1
       with:
@@ -42,7 +45,9 @@ jobs:
         node-version: 12.x
 
     - name: Dist
-      run: cargo xtask dist --nightly --client 0.3.$GITHUB_RUN_NUMBER-nightly
+      run: cargo xtask dist --nightly --client 0.3.$HEAD_SHA-nightly
+
+    - run: echo "$HEAD_SHA" > ./dist/HEAD_SHA-ubuntu-18.04
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
@@ -63,6 +68,9 @@ jobs:
         repository: ${{ env.RA_REPO }}
         ref: ${{ env.RA_REF }}
 
+    - run: HEAD_SHA="$(git rev-parse HEAD)"; HEAD_SHA="${HEAD_SHA:0:7}"; echo "$HEAD_SHA" >> $GITHUB_ENV
+    - run: 'echo "HEAD_SHA: $HEAD_SHA"'
+
     - name: Install Rust nightly toolchain
       uses: actions-rs/toolchain@v1
       with:
@@ -72,7 +80,9 @@ jobs:
         override: true
 
     - name: Dist
-      run: cargo xtask dist --nightly --client 0.3.$GITHUB_RUN_NUMBER-nightly
+      run: cargo xtask dist --nightly --client 0.3.$HEAD_SHA-nightly
+
+    - run: echo "$HEAD_SHA" > ./dist/HEAD_SHA-macos-11.0
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
@@ -90,14 +100,11 @@ jobs:
       with:
         node-version: 12.x
 
-    - run: echo "TAG=nightly-$(date --utc --iso)-$GITHUB_RUN_ID" >> $GITHUB_ENV
+    - run: echo "TAG=nightly-$(date --utc --iso)-$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
     - run: 'echo "TAG: $TAG"'
 
     - name: Checkout repository
       uses: actions/checkout@v2
-
-    - run: echo "HEAD_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
-    - run: 'echo "HEAD_SHA: $HEAD_SHA"'
 
     - uses: actions/download-artifact@v1
       with:
