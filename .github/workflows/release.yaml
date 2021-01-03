@@ -95,9 +95,6 @@ jobs:
 
     - name: Checkout repository
       uses: actions/checkout@v2
-      with:
-        repository: ${{ env.RA_REPO }}
-        ref: ${{ env.RA_REF }}
 
     - run: echo "HEAD_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
     - run: 'echo "HEAD_SHA: $HEAD_SHA"'
