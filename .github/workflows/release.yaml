@@ -45,7 +45,7 @@ jobs:
         node-version: 12.x
 
     - name: Dist
-      run: cargo xtask dist --nightly --client 0.3.$GITHUB_RUN_NUMBER+nightly-$HEAD_SHA
+      run: cargo xtask dist --nightly --client 0.3.0+nightly-$HEAD_SHA
 
     - run: echo "$HEAD_SHA" > ./dist/HEAD_SHA-ubuntu-18.04
 
@@ -80,7 +80,7 @@ jobs:
         override: true
 
     - name: Dist
-      run: cargo xtask dist --nightly --client 0.3.$GITHUB_RUN_NUMBER+nightly-$HEAD_SHA
+      run: cargo xtask dist --nightly --client 0.3.0+nightly-$HEAD_SHA
 
     - run: echo "$HEAD_SHA" > ./dist/HEAD_SHA-macos-11.0
 
@@ -100,9 +100,6 @@ jobs:
       with:
         node-version: 12.x
 
-    - run: echo "TAG=nightly-$(date --utc --iso)-$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
-    - run: 'echo "TAG: $TAG"'
-
     - name: Checkout repository
       uses: actions/checkout@v2
 
@@ -115,6 +112,11 @@ jobs:
         name: dist-ubuntu-18.04
         path: dist
     - run: ls -al ./dist
+
+    - run: echo "HEAD_SHA=$(cat ./dist/HEAD_SHA-ubuntu-18.04)" >> $GITHUB_ENV
+
+    - run: echo "TAG=nightly-$(date --utc --iso)-$HEAD_SHA" >> $GITHUB_ENV
+    - run: 'echo "TAG: $TAG"'
 
     - name: Publish Release
       uses: ./.github/actions/github-release
