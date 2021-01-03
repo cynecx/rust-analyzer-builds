@@ -68,7 +68,7 @@ jobs:
         repository: ${{ env.RA_REPO }}
         ref: ${{ env.RA_REF }}
 
-    - run: HEAD_SHA="$(git rev-parse HEAD)"; HEAD_SHA="${HEAD_SHA:0:7}"; echo "$HEAD_SHA" >> $GITHUB_ENV
+    - run: HEAD_SHA="$(git rev-parse HEAD)"; HEAD_SHA="${HEAD_SHA:0:7}"; echo "HEAD_SHA=$HEAD_SHA" >> $GITHUB_ENV
     - run: 'echo "HEAD_SHA: $HEAD_SHA"'
 
     - name: Install Rust nightly toolchain
