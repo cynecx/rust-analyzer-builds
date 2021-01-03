@@ -45,7 +45,7 @@ jobs:
         node-version: 12.x
 
     - name: Dist
-      run: cargo xtask dist --nightly --client 0.3.$HEAD_SHA-nightly
+      run: cargo xtask dist --nightly --client 0.3.$GITHUB_RUN_NUMBER+nightly-$HEAD_SHA
 
     - run: echo "$HEAD_SHA" > ./dist/HEAD_SHA-ubuntu-18.04
 
@@ -80,7 +80,7 @@ jobs:
         override: true
 
     - name: Dist
-      run: cargo xtask dist --nightly --client 0.3.$HEAD_SHA-nightly
+      run: cargo xtask dist --nightly --client 0.3.$GITHUB_RUN_NUMBER+nightly-$HEAD_SHA
 
     - run: echo "$HEAD_SHA" > ./dist/HEAD_SHA-macos-11.0
 
