@@ -37,31 +37,6 @@ async function runOnce() {
     await octokit.repos.deleteRelease({ owner, repo, release_id });
   }
 
-  // We also need to update the `dev` tag while we're at it on the `dev` branch.
-  // if (name == 'nightly') {
-  //   try {
-  //     core.info(`updating nightly tag`);
-  //     await octokit.git.updateRef({
-  //         owner,
-  //         repo,
-  //         ref: 'tags/nightly',
-  //         sha,
-  //         force: true,
-  //     });
-  //   } catch (e) {
-  //     console.log("ERROR: ", JSON.stringify(e, null, 2));
-  //     core.info(`creating nightly tag`);
-  //     await octokit.git.createTag({
-  //       owner,
-  //       repo,
-  //       tag: 'nightly',
-  //       message: 'nightly release',
-  //       object: sha,
-  //       type: 'commit',
-  //     });
-  //   }
-  // }
-
   // Creates an official GitHub release for this `tag`, and if this is `dev`
   // then we know that from the previous block this should be a fresh release.
   core.info(`creating a release`);
@@ -69,8 +44,7 @@ async function runOnce() {
     owner,
     repo,
     name,
-    tag_name: name,
-    target_commitish: sha,
+    tag_name: "nightly",
     prerelease: true,
   });
 
